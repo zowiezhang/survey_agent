@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Research Harness 中文安装、CLI、Subagent、实时控制台、API 与故障排查手册">
+  <title>Research Harness 中文使用手册</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b11;
+      --panel: #111722;
+      --panel-2: #151d2a;
+      --line: #283447;
+      --text: #eaf0f8;
+      --muted: #97a5b9;
+      --cyan: #57d5d0;
+      --blue: #78aefb;
+      --green: #71d99f;
+      --amber: #ffc978;
+      --red: #ff8795;
+      --code: #090d14;
+      --shadow: 0 22px 60px rgba(0,0,0,.32);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 9% -4%, rgba(57,164,178,.16), transparent 29rem),
+        radial-gradient(circle at 96% 8%, rgba(94,99,206,.13), transparent 30rem),
+        var(--bg);
+      line-height: 1.72;
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    a:hover { color: var(--cyan); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    code { color: #c9e5ff; background: rgba(94,134,185,.13); border-radius: 5px; padding: .12em .38em; }
+    .shell { width: min(1500px, 100%); margin: auto; padding: 24px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 38px;
+      background: linear-gradient(135deg, rgba(20,31,44,.96), rgba(11,16,25,.96));
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .hero::after { content: ""; position: absolute; width: 340px; height: 340px; border-radius: 50%; right: -150px; top: -190px; background: rgba(87,213,208,.1); filter: blur(2px); }
+    .eyebrow { color: var(--cyan); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; }
+    h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; margin: 10px 0 15px; letter-spacing: -.035em; }
+    .lead { max-width: 900px; color: #c7d1df; font-size: 17px; margin: 0; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 23px; }
+    .button { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; background: #182131; color: var(--text); text-decoration: none; font-size: 13px; }
+    .button.primary { color: #071416; border: 0; background: linear-gradient(135deg, var(--cyan), var(--blue)); font-weight: 800; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; color: var(--muted); font-size: 12px; }
+    .meta span { border: 1px solid rgba(120,174,251,.2); padding: 5px 8px; border-radius: 99px; background: rgba(120,174,251,.06); }
+    .layout { display: grid; grid-template-columns: 270px minmax(0,1fr); gap: 20px; align-items: start; }
+    .toc { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow: auto; border: 1px solid var(--line); border-radius: 15px; background: rgba(17,23,34,.9); padding: 15px; box-shadow: var(--shadow); }
+    .toc h2 { font-size: 12px; margin: 0 0 9px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+    .toc a { display: block; padding: 6px 8px; color: #bac6d6; text-decoration: none; border-radius: 7px; font-size: 12px; line-height: 1.35; }
+    .toc a:hover { color: var(--text); background: rgba(87,213,208,.08); }
+    main { min-width: 0; }
+    section { scroll-margin-top: 18px; border: 1px solid var(--line); border-radius: 15px; background: rgba(17,23,34,.88); padding: 24px; margin-bottom: 16px; box-shadow: 0 12px 34px rgba(0,0,0,.16); }
+    section h2 { margin: 0 0 14px; font-size: 24px; letter-spacing: -.02em; }
+    section h3 { margin: 24px 0 8px; font-size: 16px; }
+    p { margin: 10px 0; }
+    ul, ol { padding-left: 22px; }
+    li + li { margin-top: 5px; }
+    .callout { border-left: 3px solid var(--cyan); background: rgba(87,213,208,.075); border-radius: 0 10px 10px 0; padding: 12px 14px; color: #cbd9e6; margin: 14px 0; }
+    .warning { border-left-color: var(--amber); background: rgba(255,201,120,.07); }
+    .danger { border-left-color: var(--red); background: rgba(255,135,149,.07); }
+    .flow { display: grid; grid-template-columns: repeat(7, minmax(95px,1fr)); gap: 8px; align-items: stretch; margin: 18px 0; }
+    .flow div { min-height: 84px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; place-items: center; text-align: center; color: #cbd6e4; font-size: 12px; background: var(--panel-2); position: relative; }
+    .flow div:not(:last-child)::after { content: "→"; position: absolute; right: -9px; z-index: 2; color: var(--cyan); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 10px; margin: 14px 0; }
+    .card { border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: var(--panel-2); }
+    .card strong { display: block; color: var(--cyan); margin-bottom: 6px; }
+    .card p { color: #bdc9d8; font-size: 13px; margin: 0; }
+    .codebox { position: relative; margin: 12px 0; }
+    pre { overflow: auto; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 11px; background: var(--code); color: #dce8f4; font-size: 12px; line-height: 1.65; white-space: pre; }
+    pre code { color: inherit; background: none; padding: 0; }
+    .copy { position: absolute; top: 8px; right: 8px; border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; background: #1b2534; color: var(--muted); cursor: pointer; font-size: 10px; }
+    .copy:hover { color: var(--text); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; margin: 13px 0; }
+    table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: 12px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 11px; border-bottom: 1px solid var(--line); }
+    th { color: #d5e0ed; background: #17202d; position: sticky; top: 0; }
+    td { color: #bdc8d7; }
+    tr:last-child td { border-bottom: 0; }
+    details { border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); margin: 8px 0; }
+    summary { cursor: pointer; padding: 12px 14px; font-weight: 700; color: #d9e4ef; }
+    details > div { padding: 0 14px 14px; color: #bdc9d8; }
+    .pill { display: inline-block; font-size: 10px; border-radius: 99px; padding: 3px 7px; color: var(--green); background: rgba(113,217,159,.09); border: 1px solid rgba(113,217,159,.2); }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px 10px; }
+    @media (max-width: 1040px) { .layout { grid-template-columns: 1fr; } .toc { position: static; max-height: none; columns: 2; } .toc h2 { column-span: all; } .flow { grid-template-columns: repeat(2,1fr); } .flow div::after { display: none; } }
+    @media (max-width: 650px) { .shell { padding: 10px; } .hero, section { padding: 18px; } .toc { columns: 1; } .flow { grid-template-columns: 1fr; } h1 { font-size: 31px; } }
+    @media print { :root { color-scheme: light; --bg:#fff; --panel:#fff; --panel-2:#fff; --line:#ccd3dc; --text:#111827; --muted:#5b6472; --code:#f4f6f8; --blue:#1457a6; } body { background:#fff; } .toc,.copy,.hero-actions { display:none; } .layout { display:block; } section,.hero { box-shadow:none; break-inside:avoid; } pre { white-space:pre-wrap; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="eyebrow">Evidence-first research orchestration</div>
+      <h1>Research Harness<br>中文使用手册</h1>
+      <p class="lead">从一句自然语言课题出发，编排 Codex、Claude Code 或 OpenAI Responses，生成可追溯、可搜索、带叶节点超链接的深度调研报告。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="../examples/async-agentic-rl.sh">打开完整示例脚本</a>
+        <a class="button" href="./使用手册.zh-CN.md">打开 Markdown 手册</a>
+        <a class="button" href="#quick-start">五分钟开始</a>
+      </div>
+      <div class="meta"><span>版本 0.1.0</span><span>Node.js ≥ 20</span><span>8 类专业角色</span><span>CLI + HTTP + SSE + Web UI</span><span>更新于 2026-08-26</span></div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="页面目录">
+        <h2>目录</h2>
+        <a href="#quick-start">1. 五分钟开始</a>
+        <a href="#workflow">2. 工作原理</a>
+        <a href="#install">3. 安装与环境</a>
+        <a href="#providers">4. 选择 Harness</a>
+        <a href="#example">5. 完整示例脚本</a>
+        <a href="#prompt">6. 如何写调研指令</a>
+        <a href="#cli">7. CLI 参数</a>
+        <a href="#scheduling">8. 深度、任务与并发</a>
+        <a href="#roles">9. Subagent 角色</a>
+        <a href="#seed">10. 本地参考资料</a>
+        <a href="#logs">11. 实时日志</a>
+        <a href="#reports">12. 输出报告</a>
+        <a href="#dashboard">13. Web 控制台</a>
+        <a href="#api">14. HTTP API / SSE</a>
+        <a href="#node">15. Node.js 调用</a>
+        <a href="#quality">16. 质量门槛</a>
+        <a href="#tuning">17. 调优</a>
+        <a href="#security">18. 安全</a>
+        <a href="#troubleshooting">19. 故障排查</a>
+        <a href="#verification">20. 验收清单</a>
+      </nav>
+
+      <main>
+        <section id="quick-start">
+          <h2>1. 五分钟开始</h2>
+          <p>进入项目、安装依赖并构建：</p>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>cd '/Users/zhangzhaowei05/Desktop/test/survey_agent'
+npm install
+npm run build
+npm start -- research --help</code></pre></div>
+          <p>使用已经登录的 Codex 运行第一个标准调研：</p>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>codex login
+
+npm start -- research '调研异步 Agentic RL 当前的学界与工业界研究现状；区分论文实验、厂商自报和独立复测；每个重要结论附原始链接' \
+  --harness codex \
+  --depth standard \
+  --concurrency 4 \
+  --heartbeat 5 \
+  --out reports/async_agentic_rl.md</code></pre></div>
+          <div class="callout">运行过程中终端会持续显示规划、worker、查询、来源、重试、心跳与综合进度。完成后会同时生成 Markdown 和同名可交互 HTML。</div>
+        </section>
+
+        <section id="workflow">
+          <h2>2. 系统实际会做什么</h2>
+          <div class="flow" aria-label="调研流程">
+            <div>课题 / Seed</div><div>规划与同义词</div><div>角色任务图</div><div>并发检索</div><div>来源审计</div><div>引用综合</div><div>MD + HTML</div>
+          </div>
+          <ul>
+            <li><code>harness</code> 是真正执行研究的 Agent 环境，不只是模型参数。</li>
+            <li><code>maxQueries</code> 控制互补查询簇；<code>maxAgents</code> 控制角色化工作包总量；<code>concurrency</code> 控制同时运行数。</li>
+            <li>每个 evidence worker 返回原子 claim、HTTP(S) 来源、置信度、caveat 和证据缺口。</li>
+            <li>第二波来源审计回查 DOI、PDF、公告、commit、榜单行、访谈正文或时间戳等叶节点。</li>
+            <li>综合器只能引用来源注册表中的 <code>S1</code>、<code>S2</code> 等编号。</li>
+          </ul>
+          <div class="callout warning">框架不会承诺“搜索了全网”。登录墙、付费墙、索引盲区、网页变化和私有数据库始终可能形成缺口；正确行为是记录缺口，而不是编造完整性。</div>
+        </section>
+
+        <section id="install">
+          <h2>3. 安装与环境</h2>
+          <div class="table-wrap"><table><thead><tr><th>项目</th><th>要求</th><th>检查方式</th></tr></thead><tbody>
+            <tr><td>Node.js</td><td>20 或更高</td><td><code>node --version</code></td></tr>
+            <tr><td>npm</td><td>随 Node 安装</td><td><code>npm --version</code></td></tr>
+            <tr><td>Codex</td><td>使用 Codex 时需要登录</td><td><code>codex --version</code></td></tr>
+            <tr><td>Claude Code</td><td>使用 CC 时需要登录</td><td><code>claude auth status</code></td></tr>
+            <tr><td>OpenAI</td><td>服务端环境有 API key</td><td><code>test -n "$OPENAI_API_KEY"</code></td></tr>
+          </tbody></table></div>
+          <h3>环境变量</h3>
+          <div class="table-wrap"><table><thead><tr><th>变量</th><th>作用</th><th>何时需要</th></tr></thead><tbody>
+            <tr><td><code>OPENAI_API_KEY</code></td><td>Responses API 密钥</td><td>OpenAI 必需</td></tr>
+            <tr><td><code>OPENAI_BASE_URL</code> / <code>OPENAI_MODEL</code></td><td>自定义入口与默认模型</td><td>可选</td></tr>
+            <tr><td><code>CODEX_COMMAND</code> / <code>CODEX_MODEL</code></td><td>Codex 路径与默认模型</td><td>可选</td></tr>
+            <tr><td><code>CODEX_TOKEN_ENV</code></td><td>要求存在的 Codex token 变量名</td><td>可选</td></tr>
+            <tr><td><code>CLAUDE_COMMAND</code> / <code>CLAUDE_MODEL</code></td><td>CC 路径与默认模型</td><td>可选</td></tr>
+            <tr><td><code>CLAUDE_TOKEN_ENV</code></td><td>要求存在的 CC token 变量名</td><td>可选</td></tr>
+            <tr><td><code>CLAUDE_MAX_BUDGET_USD</code></td><td>每次 CC 会话预算上限</td><td>可选</td></tr>
+            <tr><td><code>RESEARCH_HARNESS_API_TOKEN</code></td><td>HTTP 服务 Bearer token</td><td>serve 必需</td></tr>
+          </tbody></table></div>
+          <p>项目不会自动读取 <code>.env</code>；请用 shell、进程管理器或 secret manager 注入。</p>
+        </section>
+
+        <section id="providers">
+          <h2>4. 选择 Harness</h2>
+          <div class="grid">
+            <article class="card"><strong>Codex</strong><p>复用本机 Codex 登录。每阶段使用临时、只读、ephemeral <code>codex exec</code>，原生 JSON 事件与 output schema。</p></article>
+            <article class="card"><strong>Claude Code / CC</strong><p><code>cc</code> 是 <code>claude</code> 别名。Hybrid 模式同时启用外层调度与受限原生 Agent 通道。</p></article>
+            <article class="card"><strong>OpenAI Responses</strong><p>使用内置 web search、Structured Outputs 与 <code>store:false</code>，适合服务端 API 调度。</p></article>
+          </div>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code># Codex
+npm start -- research '主题' --harness codex --depth deep
+
+# Claude Code 原生 subagent + 外层并发
+npm start -- research '主题' --harness cc --depth deep --subwork hybrid --concurrency 4
+
+# OpenAI Responses
+OPENAI_API_KEY='...' npm start -- research '主题' --harness openai --depth standard</code></pre></div>
+          <p>Codex 和 CC CLI 的账号登录由各自工具负责；Research Harness 不接管或保存明文 token。</p>
+        </section>
+
+        <section id="example">
+          <h2>5. 完整示例脚本</h2>
+          <p>仓库包含 <a href="../examples/async-agentic-rl.sh"><code>examples/async-agentic-rl.sh</code></a>，可复现“异步 Agentic RL 学界与工业界现状”的 Deep 调研。</p>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>chmod +x examples/async-agentic-rl.sh
+./examples/async-agentic-rl.sh</code></pre></div>
+          <div class="grid">
+            <article class="card"><strong>默认规模</strong><p>Deep、6 查询簇、64 工作包、6 并发、每包 20 findings、5 秒心跳。</p></article>
+            <article class="card"><strong>默认输出</strong><p><code>reports/async_agentic_rl_example.md</code> 与同名 HTML。</p></article>
+            <article class="card"><strong>运行时间</strong><p>完整 Deep 实例可能运行一小时或更久，取决于网络、Agent 和页面长尾。</p></article>
+          </div>
+          <h3>切换到 Claude Code</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>RH_HARNESS=cc RH_SUBWORK=hybrid RH_CONCURRENCY=4 \
+  ./examples/async-agentic-rl.sh</code></pre></div>
+          <h3>先运行 Quick 缩小版</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>RH_DEPTH=quick \
+RH_MAX_AGENTS=12 \
+RH_MAX_SOURCES=6 \
+RH_CONCURRENCY=3 \
+RH_OUTPUT=reports/async_agentic_rl_quick.md \
+  ./examples/async-agentic-rl.sh</code></pre></div>
+          <h3>换成自己的题目</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>RH_OUTPUT=reports/my_topic.md \
+  ./examples/async-agentic-rl.sh \
+  '调研中国 AI Coding Agent 初创公司；覆盖创始人、产品、融资、客户、技术、Benchmark、争议；每个数字附原始链接'</code></pre></div>
+          <p>脚本可用 <code>RH_HARNESS</code>、<code>RH_MODEL</code>、<code>RH_DEPTH</code>、<code>RH_SUBWORK</code>、<code>RH_MAX_QUERIES</code>、<code>RH_MAX_AGENTS</code>、<code>RH_ENTITIES_PER_AGENT</code>、<code>RH_MAX_SOURCES</code>、<code>RH_CONCURRENCY</code>、<code>RH_HEARTBEAT</code>、<code>RH_OUTPUT</code>、<code>RH_HTML_OUTPUT</code> 和 <code>RH_SEED</code> 覆盖默认配置。设置 <code>RH_DRY_RUN=1</code> 可以只构建并打印最终命令，不启动真实调研。</p>
+        </section>
+
+        <section id="prompt">
+          <h2>6. 如何写高质量调研指令</h2>
+          <p>最好明确对象、时间/地区、研究维度、同义词扩展、证据等级、冲突处理和交付结构。</p>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>深度调研【主题】截至【日期】的【地区/行业】现状。
+
+覆盖概念边界、同义词/旧称/多语言；人物与组织关系；数据、训练、算法、Agent、系统和 Benchmark；产品、客户、融资；观点、反证、安全、监管和开放问题。
+
+所有数字、人物身份、引语和关键事件必须附可直达原文的 HTTP(S) 链接。优先论文、监管文件、代码、公告、完整访谈和客户文件；区分厂商自报、作者实验、可靠转述和独立复测；转载不得重复计为独立证据；找不到时标记未证实。</code></pre></div>
+          <p>用 <code>--brief</code> 传递受众与决策角度，例如“面向早期 VC 投资委员会，重点核验真实客户、融资交割和单位经济性”。</p>
+        </section>
+
+        <section id="cli">
+          <h2>7. CLI 完整参数</h2>
+          <div class="table-wrap"><table><thead><tr><th>参数</th><th>取值/范围</th><th>默认值</th><th>说明</th></tr></thead><tbody>
+            <tr><td><code>--harness</code></td><td>openai/codex/claude/cc</td><td>兼容 provider 默认</td><td>首选执行器参数</td></tr>
+            <tr><td><code>-p, --provider</code></td><td>同上</td><td>openai</td><td>旧别名</td></tr>
+            <tr><td><code>-m, --model</code></td><td>最长 120 字符</td><td>Provider 默认</td><td>模型名</td></tr>
+            <tr><td><code>-b, --brief</code></td><td>最长 4000 字符</td><td>空</td><td>角度、受众和补充要求</td></tr>
+            <tr><td><code>-d, --depth</code></td><td>quick/standard/deep</td><td>standard</td><td>角色与预算档位</td></tr>
+            <tr><td><code>-l, --language</code></td><td>2–35 字符</td><td>zh-CN</td><td>报告语言</td></tr>
+            <tr><td><code>--max-queries</code></td><td>2–8</td><td>规划器决定</td><td>互补查询簇</td></tr>
+            <tr><td><code>--max-agents</code></td><td>2–256</td><td>12/32/64</td><td>工作包总上限</td></tr>
+            <tr><td><code>--entities-per-agent</code></td><td>1–50</td><td>25/18/12</td><td>每包基线实体上限</td></tr>
+            <tr><td><code>--max-sources</code></td><td>2–30</td><td>6/12/20</td><td>每包 findings 上限</td></tr>
+            <tr><td><code>--seed</code></td><td>HTML/JSON 路径</td><td>空</td><td>参考基线</td></tr>
+            <tr><td><code>--subwork</code></td><td>delegated/native/hybrid</td><td>hybrid</td><td>并发拓扑</td></tr>
+            <tr><td><code>--concurrency</code></td><td>1–16</td><td>3</td><td>外层并发</td></tr>
+            <tr><td><code>--include-domain</code></td><td>多个域名</td><td>空</td><td>优先来源</td></tr>
+            <tr><td><code>--exclude-domain</code></td><td>多个域名</td><td>空</td><td>排除来源</td></tr>
+            <tr><td><code>-o, --out</code></td><td>路径</td><td>自动</td><td>Markdown 输出</td></tr>
+            <tr><td><code>--html-out</code></td><td>路径</td><td>MD 同名</td><td>HTML 输出</td></tr>
+            <tr><td><code>--no-html</code></td><td>开关</td><td>关闭</td><td>不生成 HTML</td></tr>
+            <tr><td><code>--print-json</code></td><td>开关</td><td>关闭</td><td>额外输出 manifest</td></tr>
+            <tr><td><code>--log-format</code></td><td>human/json</td><td>human</td><td>进度日志格式</td></tr>
+            <tr><td><code>--heartbeat</code></td><td>正数秒</td><td>5</td><td>心跳间隔</td></tr>
+          </tbody></table></div>
+        </section>
+
+        <section id="scheduling">
+          <h2>8. 深度、工作包与并发</h2>
+          <div class="table-wrap"><table><thead><tr><th>深度</th><th>工作包上限</th><th>每包 findings</th><th>每包实体</th><th>用途</th></tr></thead><tbody>
+            <tr><td>quick</td><td>12</td><td>6</td><td>25</td><td>试题、术语梳理</td></tr>
+            <tr><td>standard</td><td>32</td><td>12</td><td>18</td><td>日常专题调研</td></tr>
+            <tr><td>deep</td><td>64</td><td>20</td><td>12</td><td>全景、投资尽调</td></tr>
+          </tbody></table></div>
+          <div class="callout"><code>maxQueries=6</code> 不等于只有 6 个 Agent。查询会与角色、实体分片组合，因此可形成 64 个工作包；<code>concurrency=6</code> 只表示同时最多跑 6 个。</div>
+          <div class="table-wrap"><table><thead><tr><th>Subwork</th><th>外层调度</th><th>原生 subagent</th><th>说明</th></tr></thead><tbody>
+            <tr><td>delegated</td><td>并发</td><td>关闭</td><td>最可预测</td></tr>
+            <tr><td>native</td><td>基本串行</td><td>支持时开启</td><td>由会话内部拆分</td></tr>
+            <tr><td>hybrid</td><td>并发</td><td>支持时开启</td><td>CC Deep 推荐</td></tr>
+          </tbody></table></div>
+        </section>
+
+        <section id="roles">
+          <h2>9. 角色化 Subagent</h2>
+          <div class="grid">
+            <article class="card"><strong>生态与实体发现</strong><p>规范名、别名、旧称、多语言、人物/产品/投资方关系。</p></article>
+            <article class="card"><strong>技术尽调</strong><p>数据、训练、算法、Agent、系统、代码、成熟度与失败边界。</p></article>
+            <article class="card"><strong>工商与投融资</strong><p>法律主体、工商变更、逐轮融资、投资方和估值口径。</p></article>
+            <article class="card"><strong>创始人与观点</strong><p>人物消歧、履历、完整访谈、原话上下文与观点变化。</p></article>
+            <article class="card"><strong>产品与采用</strong><p>版本、定价、客户、采购、生产部署、停服和采用指标。</p></article>
+            <article class="card"><strong>Benchmark 复核</strong><p>榜单版本、预算、工具权限、harness、污染与独立复现。</p></article>
+            <article class="card"><strong>反证、风险与合规</strong><p>负面结果、安全、监管、诉讼、公司回应和后续状态。</p></article>
+            <article class="card"><strong>来源与引用审计</strong><p>回查叶节点、去重转载、校验引语/数字与来源独立性。</p></article>
+          </div>
+          <p>Quick 使用生态、技术、反证和来源审计；Standard 增加工商、人物、产品；Deep 使用全部八类角色。</p>
+        </section>
+
+        <section id="seed">
+          <h2>10. 导入本地 HTML/JSON</h2>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>npm start -- research '以参考页为起点，重新核验并扩展公司全景' \
+  --seed '/absolute/path/reference.html' \
+  --harness codex \
+  --depth deep \
+  --max-agents 64 \
+  --entities-per-agent 12 \
+  --concurrency 6 \
+  --out reports/result.md</code></pre></div>
+          <p>Seed 会被解析成实体、法律主体、别名、创始人、融资、观点和技术字段，然后按角色分片。它只是待核验基线，不会直接变成最终证据。</p>
+          <div class="callout warning">CLI 默认允许本地 seed；HTTP 服务默认禁止。API 需要时必须以 <code>--allow-local-seeds</code> 启动，而且只应向可信调用者开放。</div>
+        </section>
+
+        <section id="logs">
+          <h2>11. 实时日志与进度</h2>
+          <div class="codebox"><pre><code>[19:31:41] [规划] 正在拆解问题与搜索范围…
+[19:32:23] [任务图] 已生成 64 个角色化 subagent 工作包
+[19:42:19] [Benchmark 独立复核 · W13] [仍在运行] 检索中 · 已耗时 1m 0s
+  公开工作笔记：正在核对榜单、复现日志、commit、污染与勘误。
+[20:34:23] [综合] 正在用 603 个独立来源、1273 条证据生成报告…
+[20:36:29] [██████████] 64/64 调研完成 · 603 个独立来源 · 0 个隔离失败</code></pre></div>
+          <div class="table-wrap"><table><thead><tr><th>标记</th><th>含义</th></tr></thead><tbody>
+            <tr><td>预规划 / 规划完成</td><td>初始研究骨架与通过 schema 的查询图</td></tr>
+            <tr><td>任务图</td><td>角色、编号、实体分片已形成</td></tr>
+            <tr><td>Agent 活动</td><td>会话、网页工具、输出和 usage 活动</td></tr>
+            <tr><td>仍在运行</td><td>定时心跳，不代表重复请求</td></tr>
+            <tr><td>自动重试</td><td>临时错误或结构失败正在恢复</td></tr>
+            <tr><td>工作包失败，已隔离</td><td>其余 worker 继续，报告保留缺口</td></tr>
+            <tr><td>结构修复</td><td>禁网修 JSON/引用，不重复调研</td></tr>
+          </tbody></table></div>
+          <h3>JSONL 日志</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>npm start -- research '主题' --harness codex --log-format json \
+  --out reports/result.md \
+  2&gt; reports/result.progress.jsonl</code></pre></div>
+        </section>
+
+        <section id="reports">
+          <h2>12. 输出报告</h2>
+          <div class="grid">
+            <article class="card"><strong>Markdown</strong><p>结论摘要、关键发现、实体脉络、风险、待验证、证据账本和来源注册表。引用均为可点击 <code>[S编号]</code>。</p></article>
+            <article class="card"><strong>交互 HTML</strong><p>独立离线文件；全文搜索、角色/置信度筛选、worker 工作契约、来源域名筛选、证据展开与 JSON 导出。</p></article>
+          </div>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code># 默认：result.md + result.html
+--out reports/result.md
+
+# 分别指定
+--out output/report.md --html-out public/report.html
+
+# 只生成 Markdown
+--out reports/result.md --no-html</code></pre></div>
+          <p>URL 会移除常见跟踪参数并去重。正文多次引用同一个来源是正常的，不等于来源重复计数。</p>
+        </section>
+
+        <section id="dashboard">
+          <h2>13. 实时 Web 控制台</h2>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>export RESEARCH_HARNESS_API_TOKEN="$(openssl rand -hex 32)"
+npm start -- serve --host 127.0.0.1 --port 8787</code></pre></div>
+          <p>浏览器打开 <a href="http://127.0.0.1:8787/ui">http://127.0.0.1:8787/ui</a>，输入 Bearer token、Harness、深度、并发和课题。</p>
+          <ul>
+            <li>总进度、耗时、活动 subagent、来源数与最后心跳。</li>
+            <li>Planner、角色 worker 和综合器的独立卡片。</li>
+            <li>实时日志搜索与活动/心跳/发现/错误筛选。</li>
+            <li>取消当前浏览器请求。</li>
+            <li>完成后搜索报告、筛选来源、下载 Markdown、打开交互 HTML。</li>
+          </ul>
+          <div class="callout danger">不要把服务直接暴露到公网。需要公网时使用 TLS、VPN/ACL、限流、费用配额和长随机 token；不要对不可信调用者开放本地 seed。</div>
+        </section>
+
+        <section id="api">
+          <h2>14. HTTP API 与 SSE</h2>
+          <p>除 UI 页面外，健康检查和研究接口均要求 Bearer 鉴权。</p>
+          <h3>同步接口</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>curl http://127.0.0.1:8787/v1/research \
+  -H "Authorization: Bearer $RESEARCH_HARNESS_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "topic":"调研异步 Agentic RL 的学界与工业界现状",
+    "harness":"codex",
+    "depth":"deep",
+    "language":"zh-CN",
+    "maxQueries":6,
+    "maxAgents":64,
+    "entitiesPerAgent":12,
+    "maxSources":20,
+    "subworkMode":"hybrid",
+    "concurrency":6
+  }'</code></pre></div>
+          <h3>SSE 流式接口</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>curl -N http://127.0.0.1:8787/v1/research/stream \
+  -H "Authorization: Bearer $RESEARCH_HARNESS_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{"topic":"调研异步 Agentic RL","provider":"codex","depth":"deep","maxAgents":64,"concurrency":6}'</code></pre></div>
+          <p>事件依次为 <code>connected</code>、多个 <code>progress</code>，最后是 <code>result</code>；失败时是 <code>error</code>。结果包含 Markdown、HTML、tasks、evidenceTasks、failedTasks 和 sources。</p>
+          <div class="table-wrap"><table><thead><tr><th>字段</th><th>限制</th></tr></thead><tbody>
+            <tr><td>topic / brief</td><td>3–500 / 最长 4000 字符</td></tr>
+            <tr><td>depth</td><td>quick / standard / deep</td></tr>
+            <tr><td>maxQueries</td><td>2–8</td></tr>
+            <tr><td>maxAgents</td><td>2–256</td></tr>
+            <tr><td>entitiesPerAgent</td><td>1–50</td></tr>
+            <tr><td>maxSources</td><td>2–30</td></tr>
+            <tr><td>concurrency</td><td>1–16</td></tr>
+            <tr><td>includeDomains / excludeDomains</td><td>各最多 20</td></tr>
+          </tbody></table></div>
+          <p>请求 schema 是 strict 的，不接收 Provider token 或未知字段。</p>
+        </section>
+
+        <section id="node">
+          <h2>15. Node.js / TypeScript 调用</h2>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>import { createAgent, createCliProgressReporter, ResearchWorkflow } from "research-harness";
+
+const workflow = new ResearchWorkflow(createAgent("codex"), {
+  concurrency: 6,
+  heartbeatIntervalMs: 5_000,
+  onProgress: createCliProgressReporter({ format: "human" })
+});
+
+const result = await workflow.run({
+  topic: "调研异步 Agentic RL",
+  provider: "codex",
+  depth: "deep",
+  language: "zh-CN",
+  maxAgents: 64,
+  entitiesPerAgent: 12,
+  maxSources: 20,
+  subworkMode: "hybrid",
+  concurrency: 6,
+  includeDomains: [],
+  excludeDomains: []
+});
+
+console.log(result.markdown);
+console.log({ sources: result.sources.length, failed: result.failedTasks.length });</code></pre></div>
+          <p>包还导出 HTTP app、dashboard renderer、交互报告 renderer、seed parser、task graph、角色定义和结构化事件类型。</p>
+        </section>
+
+        <section id="quality">
+          <h2>16. 质量门槛与自动修复</h2>
+          <ol>
+            <li>规划、Evidence、综合都必须符合 JSON Schema。</li>
+            <li>本地先修代码围栏、智能引号、尾逗号等机械问题。</li>
+            <li>仍失败时最多运行两个禁网 repair，只修结构和引用。</li>
+            <li>单个 evidence worker 连续失败后隔离，其他任务继续。</li>
+            <li>少于两个不同 HTTP(S) 来源、未知引用无法消除或最终报告引用不足时，整次运行失败。</li>
+          </ol>
+          <p>每个来源必须进入注册表；综合器引用的 <code>S编号</code> 和 URL 必须一致。反证、冲突、无法访问和未解决问题不会被静默删除。</p>
+        </section>
+
+        <section id="tuning">
+          <h2>17. 性能、时间与成本调优</h2>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code># 快速试题
+--depth quick --max-agents 12 --max-sources 6 --concurrency 3
+
+# 日常深度
+--depth standard --max-agents 32 --max-sources 12 --concurrency 4
+
+# 全景尽调
+--depth deep --max-agents 64 --max-sources 20 --concurrency 6</code></pre></div>
+          <div class="table-wrap"><table><thead><tr><th>调高参数</th><th>覆盖面</th><th>墙钟时间</th><th>总成本</th></tr></thead><tbody>
+            <tr><td>maxAgents</td><td>明显增加</td><td>增加</td><td>明显增加</td></tr>
+            <tr><td>maxSources</td><td>单包更深</td><td>增加</td><td>增加</td></tr>
+            <tr><td>concurrency</td><td>基本不变</td><td>通常下降</td><td>基本不变或略升</td></tr>
+            <tr><td>maxQueries</td><td>查询维度增加</td><td>增加</td><td>增加</td></tr>
+          </tbody></table></div>
+          <p>推荐先 Quick 检查题目和术语，再 Deep 生成最终报告。长尾 worker 运行 5–15 分钟并不必然是卡死，只要仍有心跳或工具活动。</p>
+        </section>
+
+        <section id="security">
+          <h2>18. 安全与凭据</h2>
+          <ul>
+            <li>Provider key 只放环境变量，不写 topic、brief、命令行、HTTP body 或 seed。</li>
+            <li>Codex 使用只读临时会话；CC 使用临时空目录、safe mode 和工具 allowlist。</li>
+            <li>OpenAI 请求设置 <code>store:false</code>。</li>
+            <li>服务端 API token 与 Provider key 分离。</li>
+            <li>UI 中 token 只保存在页面内存；HTML 使用安全 DOM sink，链接限制为 HTTP(S)。</li>
+            <li>保存进度日志前检查内部课题、查询词和本地文件路径是否敏感。</li>
+          </ul>
+        </section>
+
+        <section id="troubleshooting">
+          <h2>19. 常见故障排查</h2>
+          <details open><summary>找不到 Codex / Claude Code</summary><div><pre><code>command -v codex
+codex --version
+codex login
+
+command -v claude
+claude auth status</code></pre>自定义路径可设置 <code>CODEX_COMMAND</code> 或 <code>CLAUDE_COMMAND</code>。</div></details>
+          <details><summary>OPENAI_API_KEY / API token 缺失</summary><div><pre><code>export OPENAI_API_KEY='...'
+export RESEARCH_HARNESS_API_TOKEN="$(openssl rand -hex 32)"</code></pre>确保变量与 npm 进程处于同一个 shell 或进程环境。</div></details>
+          <details><summary>Planning output 不符合 JSON Schema</summary><div>框架会自动规范化并最多修复两次。仍失败时，减少相互冲突的要求、换更可靠的结构化输出模型、保存 JSONL 日志，并运行 <code>npm run check</code>。</div></details>
+          <details><summary>Codex evidence run failed</summary><div>常见原因是登录过期、网络失败、输出结构失败或并发过高。框架会重试并隔离单包；可把并发降至 2–4。</div></details>
+          <details><summary>一直显示“仍在运行”</summary><div>检查心跳是否更新、是否有 web_search/WebFetch 活动、worker 编号是否增长、其他 worker 是否补位。Deep 长尾属正常；若全局完全停止再终止。</div></details>
+          <details><summary>API 无法读取 seedPath</summary><div>以 <code>npm start -- serve --allow-local-seeds</code> 启动，并使用服务端可见的绝对路径。</div></details>
+          <details><summary>HTML 文件很大</summary><div>Deep HTML 内嵌完整证据，数 MB 正常。可降低 maxAgents/maxSources、主要阅读 Markdown，或使用 <code>--no-html</code>。</div></details>
+        </section>
+
+        <section id="verification">
+          <h2>20. 验收与复现清单</h2>
+          <h3>工程测试</h3>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>npm run check</code></pre></div>
+          <h3>报告验收</h3>
+          <ul>
+            <li>终端是否显示 <code>N/N 调研完成</code>。</li>
+            <li>隔离失败是否为 0；否则报告是否明确列出缺口。</li>
+            <li>Markdown 和 HTML 是否存在且非空。</li>
+            <li>数字、人物、引语、融资和 Benchmark 是否有直达原出处。</li>
+            <li>是否区分厂商自报、作者实验和独立复测。</li>
+            <li>是否保留冲突、反证、不可访问路线和待验证问题。</li>
+          </ul>
+          <div class="codebox"><button class="copy" type="button">复制</button><pre><code>test -s reports/result.md
+test -s reports/result.html
+wc -l -c reports/result.md reports/result.html</code></pre></div>
+          <h3>已运行实例</h3>
+          <div class="grid">
+            <article class="card"><strong>64 / 64</strong><p>角色化工作包完成</p></article>
+            <article class="card"><strong>603</strong><p>独立来源</p></article>
+            <article class="card"><strong>1273</strong><p>Evidence findings</p></article>
+            <article class="card"><strong>0</strong><p>隔离失败</p></article>
+          </div>
+          <p>该异步 Agentic RL Deep 实例于 2026-08-26 完成，总耗时 64 分 48 秒。数字不是每次运行的固定目标；真正的验收标准是证据质量、引用一致性、缺口透明度和任务完整性。</p>
+          <div class="callout"><span class="pill">推荐工作流</span> Quick 试题 → 检查术语与来源 → Deep 最终运行 → Markdown/HTML 双重验收。</div>
+        </section>
+      </main>
+    </div>
+
+    <footer>Research Harness 0.1.0 · 中文使用手册 · 本页面零外部依赖，可离线保存与打印</footer>
+  </div>
+  <script>
+    "use strict";
+    document.querySelectorAll(".copy").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const code = button.parentElement && button.parentElement.querySelector("code");
+        if (!code) return;
+        const original = button.textContent;
+        try {
+          await navigator.clipboard.writeText(code.textContent || "");
+          button.textContent = "已复制";
+        } catch (_error) {
+          button.textContent = "复制失败";
+        }
+        window.setTimeout(function () { button.textContent = original; }, 1300);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+export { ClaudeCodeAgent, CodexCliAgent, OpenAIResponsesAgent, createAgent } from "./agents.js";
+export { createResearchApp } from "./http.js";
+export { renderDashboardHtml } from "./dashboard.js";
+export { renderInteractiveReport } from "./html-report.js";
+export { loadResearchSeed, detectSeedPath, extractEmbeddedJson } from "./seed.js";
+export { buildResearchTaskGraph } from "./task-graph.js";
+export * from "./research-roles.js";
+export { createCliProgressReporter } from "./progress.js";
+export { ResearchWorkflow } from "./workflow.js";
+export type { ProgressListener, ResearchProgressEvent, ResearchStage } from "./progress.js";
+export { ResearchHarnessError, AgentOutputError } from "./errors.js";
+export * from "./types.js";
